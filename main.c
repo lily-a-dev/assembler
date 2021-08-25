@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
 void process_file(char *file_name){
     FILE *fp = NULL;
     if ((fp = fopen(file_name, "r")) == NULL) {
+        printf("File %s was not found or is restricted.\n", file_name);
        return;
     }
     get_input(fp, file_name);
