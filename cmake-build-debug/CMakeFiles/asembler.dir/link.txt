@@ -1,0 +1,3 @@
+C:\Users\Liliane\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\211.7442.42\bin\cmake\win\bin\cmake.exe -E rm -f CMakeFiles\asembler.dir/objects.a
+"D:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\ar.exe" cr CMakeFiles\asembler.dir/objects.a @CMakeFiles\asembler.dir\objects1.rsp
+"D:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\gcc.exe" -g -Wl,--whole-archive CMakeFiles\asembler.dir/objects.a -Wl,--no-whole-archive -o asembler.exe -Wl,--out-implib,libasembler.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\asembler.dir\linklibs.rsp

@@ -1,0 +1,10 @@
+.db , 3,4 -- illegal comma
+.db 3,4, -- illegal comma
+.db 3,4 s -- not an int
+.db 3,,4 -- multi cons comma
+.db 3+4 --missing comma
+.db 3, a -- not an int
+.db 3.0 -- not an int
+.db 3 4 -- missing comma
+.db 3, a, 4 -- not an int
+.db 3, 4 -- ok - end of line

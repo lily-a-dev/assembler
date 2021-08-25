@@ -1,0 +1,6 @@
+assembler: assembler.o config.o
+	gcc -Wall -ansi -pedantic assembler.o config.o -o assembler
+assembler.o: assembler.c
+	gcc -Wall -ansi -pedantic assembler.c -o assembler.o	
+config.o: config.c
+	gcc -Wall -ansi -pedantic assembler.c -o config.o
