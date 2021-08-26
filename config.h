@@ -2,10 +2,31 @@
 #define ASEMBLER_CONFIG_H
 
 #include <stdio.h>
+
 #define MAXLINE 82 /* 82 to allow for \n and \0 */
 #define MAXPARAM 32
 #define is_space_not_n(c) (((isspace(c)) && ((c)!='\n') && ((c)!='\0'))? (1): (0))
 #define CODE_LEN 80 /* used to record the lines from input files for debugging. */
+#define OPCODE 6
+#define RS_T_D 5
+#define FUNCT 5
+#define UNUSED 6
+#define IMMED 16
+#define REG 1
+#define ADDRESS 25
+#define INPUT_FILE_EXT ".as"
+#define COMMENT_INDICATOR ';'
+#define LABEL_TERMINATOR ':'
+#define ENTRY_STR ".entry"
+#define EXTERN_STR ".extern"
+#define DH_STR ".dh"
+#define DW_STR ".dw"
+#define DB_STR  ".db"
+#define ASCIZ_STR ".asciz"
+#define MAX_REG 31
+#define MIN_REG 0
+
+
 
 typedef enum {FALSE = 0, TRUE = 1} BOOL;
 /* explicitly setting 0,1 values due to extensive use of enums in the program  -
@@ -28,51 +49,51 @@ typedef enum {
     ENT_VIS, EXT_VIS, NO_VIS
 } SYMBOL_VIS;
 
-typedef struct {
+typedef struct Instruction {
     CMD_TYPE instructType;
     CMD_NUM cmd_num;
     char *cmd_name;
     unsigned int opcode: 6;
     unsigned int func: 3;
-} INSTRUCTION;
+} Instruction;
 
-struct HEX {
+typedef struct Hex {
     int bit_num;
     union {
-        unsigned long whole: 32;
-        struct {
-            unsigned long x1: 8;
-            unsigned long x2: 8;
-            unsigned long x3: 8;
-            unsigned long x4: 8;
-        } bits;
-    };
-};
+        int whole: 32;
+        struct Bits {
+            int x1: 8;
+            int x2: 8;
+            int x3: 8;
+            int x4: 8;
+        } Hex_bits;
+    } num;
+} Hex;
 
-typedef struct symbol_node {
+typedef struct Symbol_node {
     char *name;
     int value;
     SYMBOL_ATTR attr;
     SYMBOL_VIS vis;
-    struct symbol_node *next;
-} symbol_node; /*todo - check for ref in technion course */
+    struct Symbol_node *next;
+} Symbol_node;
 
-typedef struct ext_ent_node {
+typedef struct Ext_ent_node {
     char *name;
     int value;
-    struct ext_ent_node *next;
-} ext_ent_node;
+    struct Ext_ent_node *next;
+} Ext_ent_node;
 
-typedef struct data_node {
+typedef struct Data_node {
     int symbol_value;
     char *original_ins;
     PARAM_TYPE param_type;
     int data_count;
-    struct data_node *next;
+    struct Data_node *next;
     void *data;
-} data_node; /*todo - check for ref in technion course */
+} Data_node;
 
-typedef struct {
+typedef struct Line {
     char *data_head;
     char *data;
     int line_num;
@@ -80,31 +101,31 @@ typedef struct {
     int IC;
     int DC;
     BOOL is_error;
-} LINE;
+} Line;
 
-typedef struct {
+typedef struct Data_structs {
     char *input_file_name;
     char *hex_file_name;
-    struct symbol_node *symbol_head;
-    struct symbol_node *cur_symbol;
-    struct ext_ent_node *ext_head;
-    struct ext_ent_node *ext_cur;
-    struct ext_ent_node *ent_head;
-    struct ext_ent_node *ent_cur;
-    struct data_node *data_head;
-    struct data_node *cur_data;
-    struct HEX *hex;
-    LINE *l;
+    Symbol_node *symbol_head;
+    Symbol_node *cur_symbol;
+    Ext_ent_node *ext_head;
+    Ext_ent_node *ext_cur;
+    Ext_ent_node *ent_head;
+    Ext_ent_node *ent_cur;
+    Data_node *data_head;
+    Data_node *cur_data;
+    Hex *hex;
+    Line *line;
     FILE *hex_output_file;
-} DATA_STRUCTS;
+} Data_structs;
 
-typedef struct {
+typedef struct Cmd_parser_var {
     char *code_bin_head; /* for debug */
     char *code_bin_str; /* for debug */
     long *numbers;
     char *label;
-    INSTRUCTION cmd_ins;
-} CMD_PARSER_VAR;
+    Instruction cmd_ins;
+} Cmd_parser_var;
 
 #endif /*ASEMBLER_CONFIG_H*/
 

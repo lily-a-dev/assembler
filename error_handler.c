@@ -5,7 +5,7 @@
 const char error_format[] = "Error. File %s. Line %d: %s.\n";
 const char error_op_num[] = "Error. File %s. Line %d: Expecting %d operators.\n";
 
-void print_error(ERROR err, const char *file_name, LINE *l) {
+void print_error(ERROR err, const char *file_name, Line *l) {
     int line_num = l->line_num;
     switch (err) {
         case INPUT_EXCEEDS_MAX_LEN:
@@ -107,11 +107,11 @@ void print_error(ERROR err, const char *file_name, LINE *l) {
     l->is_error = TRUE;
 }
 
-void print_error_no_expected_op(DATA_STRUCTS *data_structs, int no) {
-    data_structs->l->is_error = TRUE;
-        printf(error_op_num, data_structs->input_file_name, data_structs->l->line_num, no);
+void print_error_no_expected_op(Data_structs *data_structs, int no) {
+    data_structs->line->is_error = TRUE;
+        printf(error_op_num, data_structs->input_file_name, data_structs->line->line_num, no);
 }
-void error_line_exceed_length(const char *input_file_name, LINE *l, FILE *fp){
+void error_line_exceed_length(const char *input_file_name, Line *l, FILE *fp){
     print_error(INPUT_EXCEEDS_MAX_LEN, input_file_name, l);
     while ((l->len = getline(l->data_head, MAXLINE, fp)) > 0)
         if (l->data[l->len-1] == '\n') break;

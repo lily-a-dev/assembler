@@ -4,11 +4,13 @@
 #include "string.h"
 #include "service.h"
 
-extern const char *INPUT_FILE_EXT;
 extern const BOOL IS_DEBUG;
 
-DATA_STRUCTS *create_data_structures(char *file_name) {
-    DATA_STRUCTS *data_structs = calloc(1, sizeof(DATA_STRUCTS));
+Data_structs *create_data_structures(char *file_name) {
+    Symbol_node *symbol_head = NULL;
+    Data_node *data_head = NULL;
+    Ext_ent_node *ext_head = NULL,  *ent_head = NULL;
+    Data_structs *data_structs = calloc(1, sizeof(Data_structs));
     if (data_structs==NULL) { exit(EXIT_FAILURE); }
 
     file_name = remove_extension(file_name);
@@ -19,10 +21,10 @@ DATA_STRUCTS *create_data_structures(char *file_name) {
     init_hex(data_structs);
     init_line(data_structs);
 
-    symbol_node *symbol_head = create_symbol_node();
-    data_node *data_head = create_data_node();
-    ext_ent_node *ext_head = create_ext_ent_node();
-    ext_ent_node *ent_head = create_ext_ent_node();
+    symbol_head = create_symbol_node();
+    data_head = create_data_node();
+    ext_head = create_ext_ent_node();
+    ent_head = create_ext_ent_node();
     data_structs->symbol_head = symbol_head;
     data_structs->cur_symbol = symbol_head;
     data_structs->data_head = data_head;
@@ -35,14 +37,14 @@ DATA_STRUCTS *create_data_structures(char *file_name) {
     return data_structs;
 }
 
-void free_data_struct(DATA_STRUCTS *data_structs){
+void free_data_struct(Data_structs *data_structs){
     if (data_structs->input_file_name) free(data_structs->input_file_name);
     if (data_structs->hex_file_name) free(data_structs->hex_file_name);
-    if (data_structs->hex_output_file) fclose(data_structs->hex_output_file);
+    if (!data_structs->line->is_error) fclose(data_structs->hex_output_file);
     if (data_structs->hex) free(data_structs->hex);
-    if (data_structs->l) {
-        if (data_structs->l->data_head) { free(data_structs->l->data_head); }
-        free(data_structs->l);
+    if (data_structs->line) {
+        if (data_structs->line->data_head) { free(data_structs->line->data_head); }
+        free(data_structs->line);
     }
     free_symbol_linked_list(data_structs->symbol_head);
     free_data_linked_list(data_structs->data_head);
@@ -51,8 +53,8 @@ void free_data_struct(DATA_STRUCTS *data_structs){
     free(data_structs);
 }
 
-CMD_PARSER_VAR *allocate_for_parse_fn(){
-    CMD_PARSER_VAR *parser_var = calloc(1, sizeof(CMD_PARSER_VAR));
+Cmd_parser_var *allocate_for_parse_fn(){
+    Cmd_parser_var *parser_var = calloc(1, sizeof(Cmd_parser_var));
     if (!parser_var) exit(EXIT_FAILURE);
 
     parser_var->numbers = calloc(MAXLINE, sizeof(long));
@@ -69,8 +71,8 @@ CMD_PARSER_VAR *allocate_for_parse_fn(){
 }
 
 void *create_node(char **param, size_t size, int char_amount) {
-    *param = calloc(char_amount, sizeof(char));
     void *new_node = calloc(1, size);
+    *param = calloc(char_amount, sizeof(char));
     if (!new_node) {
         exit(EXIT_FAILURE);
     }
@@ -80,56 +82,56 @@ void *create_node(char **param, size_t size, int char_amount) {
     return new_node;
 }
 
-symbol_node *create_symbol_node() {
+Symbol_node *create_symbol_node() {
     char *param;
-    symbol_node *new_node = create_node(&param, sizeof(symbol_node), MAXPARAM);
+    Symbol_node *new_node = create_node(&param, sizeof(Symbol_node), MAXPARAM);
     new_node->name = param;
     new_node->vis = NO_VIS, new_node->attr = NO_ATTR;
     return new_node;
 }
 
-ext_ent_node *create_ext_ent_node() {
+Ext_ent_node *create_ext_ent_node() {
     char *param;
-    ext_ent_node *new_node = create_node(&param, sizeof(ext_ent_node), MAXPARAM);
+    Ext_ent_node *new_node = create_node(&param, sizeof(Ext_ent_node), MAXPARAM);
     new_node->name = param;
     return new_node;
 }
 
-data_node *create_data_node() {
+Data_node *create_data_node() {
     char *param;
-    data_node *new_node = create_node(&param, sizeof(data_node), MAXLINE);
+    Data_node *new_node = create_node(&param, sizeof(Data_node), MAXLINE);
     new_node->original_ins = param;
     return new_node;
 }
 
-void init_hex(DATA_STRUCTS *data_structs){
-    struct HEX *hex = calloc(1, sizeof (struct HEX));
+void init_hex(Data_structs *data_structs){
+    Hex *hex = calloc(1, sizeof (Hex));
     if (hex) {
         data_structs->hex = hex;
-        data_structs->hex->whole = 0;
+        data_structs->hex->num.whole = 0;
         data_structs->hex->bit_num = 31;
     } else {
         exit(EXIT_FAILURE);
     }
 }
 
-void init_line(DATA_STRUCTS *data_structs){
-    LINE *l = calloc(1, sizeof(LINE));
+void init_line(Data_structs *data_structs){
+    Line *l = calloc(1, sizeof(Line));
     if (l) {
-        data_structs->l = l;
-        data_structs->l->data_head = calloc(MAXLINE, sizeof(char));
-        if (data_structs->l->data_head) {
-            data_structs->l->data = data_structs->l->data_head,
-            data_structs->l->line_num = 0, data_structs->l->len = 0,
-            data_structs->l->IC = 100, data_structs->l->DC = 0,
-            data_structs->l->is_error = FALSE;
+        data_structs->line = l;
+        data_structs->line->data_head = calloc(MAXLINE, sizeof(char));
+        if (data_structs->line->data_head) {
+            data_structs->line->data = data_structs->line->data_head,
+            data_structs->line->line_num = 0, data_structs->line->len = 0,
+            data_structs->line->IC = 100, data_structs->line->DC = 0,
+            data_structs->line->is_error = FALSE;
         } else {
             exit(EXIT_FAILURE);
         }
     }
 }
 
-void free_cmd_parser_var(CMD_PARSER_VAR *parser_var){
+void free_cmd_parser_var(Cmd_parser_var *parser_var){
     if (!parser_var) return;
     if (!parser_var->code_bin_head) { free(parser_var->code_bin_head); }
     if (!parser_var->numbers) { free(parser_var->numbers); }
@@ -137,8 +139,8 @@ void free_cmd_parser_var(CMD_PARSER_VAR *parser_var){
     free(parser_var);
 }
 
-void free_symbol_linked_list(symbol_node *head){
-    symbol_node * temp;
+void free_symbol_linked_list(Symbol_node *head){
+    Symbol_node * temp;
     while (head != NULL){
         temp = head;
         head = head->next;
@@ -147,8 +149,8 @@ void free_symbol_linked_list(symbol_node *head){
     }
 }
 
-void free_ext_ent_linked_list(ext_ent_node *head){
-    ext_ent_node * temp;
+void free_ext_ent_linked_list(Ext_ent_node *head){
+    Ext_ent_node * temp;
     while (head != NULL){
         temp = head;
         head = head->next;
@@ -157,8 +159,8 @@ void free_ext_ent_linked_list(ext_ent_node *head){
     }
 }
 
-void free_data_linked_list(data_node *head){
-    data_node * temp;
+void free_data_linked_list(Data_node *head){
+    Data_node * temp;
     while (head->next != NULL){
         temp = head;
         head = head->next;
@@ -169,11 +171,13 @@ void free_data_linked_list(data_node *head){
 }
 
 char * remove_extension(char *file_name){
+    char *ext = NULL;
+    int extLen;
     char *new_file_name = calloc(MAXLINE, sizeof(char));
     if (!new_file_name) exit(EXIT_FAILURE);
-    char *ext = strstr(file_name, INPUT_FILE_EXT);
+    ext = strstr(file_name, INPUT_FILE_EXT);
     if (!ext) return NULL;
-    int extLen = (int) strlen(INPUT_FILE_EXT);
+    extLen = (int) strlen(INPUT_FILE_EXT);
     if (ext[extLen] != '\0') return NULL;
     strncpy(new_file_name, file_name, strlen(file_name) - extLen);
     return new_file_name;

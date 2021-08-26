@@ -1,6 +1,54 @@
-assembler: assembler.o config.o
-	gcc -Wall -ansi -pedantic assembler.o config.o -o assembler
-assembler.o: assembler.c
-	gcc -Wall -ansi -pedantic assembler.c -o assembler.o	
-config.o: config.c
-	gcc -Wall -ansi -pedantic assembler.c -o config.o
+CC = gcc
+CFLAGS = -Wall -ansi -pedantic
+
+TARGET = config, encoder, error_handler, input_validator, label, main, memory_manager, output_manager, service
+
+default: assembler
+
+all: $(TARGET)
+
+$(TARGET)
+
+config.o error_handler.o memory_manager.o: stdio.h
+config.o: config.h
+encoder.o input_validator.o main.o memory_manager.o output_manager.o service.o: stdlib.h
+encoder.o input_validator.o label.o memory_manager.o service.o: string.h
+encoder.o main.o: encoder.h
+encoder.o error_handler.o input_validator.o main.o memory_manager.o output_manager.o service.o: service.h
+encoder.o input_validator.o main.o memory_manager.o: memory_manager.h
+encoder.o main.o output_manager.o: output_manager.h
+encoder.o input_validator.o main.o label.o: main.h
+encoder.o error_handler.o input_validator.o label.o main.o service.o: error_handler.h
+encoder.o input_validator.o label.o service.o: label.h
+error_handler.o input_validator.o main.o label.o service.o: service.h
+input_validator.o main.o: input_validator.h
+input_validator.o label.o service.o: ctype.h
+label.o error_handler.o input_validator.o service.o: errors.h
+service.o: errno.h
+
+$(TARGET): $(TARGET).c
+    $(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c
+
+clean:
+    $(RM) $(TARGET)
+
+
+$(objects) : defs.h
+kbd.o command.o files.o : command.h
+display.o insert.o search.o files.o : buffer.h
+
+
+
+#config.o: stdio.h config.h
+#encoder.o: stdlib.h string.h encoder.h service.h memory_manager.h \
+#	output_manager.h main.h error_handler.h label.h
+#error_handler.o: error_handler.h service.h stdio.h
+#input_validator.o: input_validator.h string.h stdlib.h ctype.h service.h \
+#	main.h memory_manager.h label.h error_handler.h
+#label.o: string.h ctype.h label.h errors.h main.h service.h error_handler.h
+#main.o: stdlib.h main.h service.h encoder.h memory_manager.h output_manager.h \
+#	error_handler.h input_validator.h
+#memory_manager.o: memory_manager.h stdio.h stdlib.h string.h service.h
+#output_manager.o: output_manager.h stdlib.h service.h
+#service.o: string.h service.h error_handler.h label.h ctype.h stdlib.h errno.h
+

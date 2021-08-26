@@ -13,17 +13,16 @@
 #include <ctype.h>
 #include "input_validator.h"
 #include "service.h"
-#include "main.h"
 #include "memory_manager.h"
 #include "label.h"
 #include "error_handler.h"
 
-extern INSTRUCTION instruct_array[];
+extern Instruction instruct_array[];
 
-void first_pass (DATA_STRUCTS *data_structs, char *param) {
+void first_pass (Data_structs *data_structs, char *param) {
     BOOL is_symbol = FALSE;
-    LINE *l = data_structs->l;
-    struct symbol_node *cur_symbol = data_structs->cur_symbol;
+    Line *l = data_structs->line;
+    Symbol_node *cur_symbol = data_structs->cur_symbol;
     PARAM_TYPE param_type;
     int cmd_in;
 
@@ -71,7 +70,7 @@ void first_pass (DATA_STRUCTS *data_structs, char *param) {
 
 }
 
-void validate_cmd(DATA_STRUCTS *data_structs, int cmd_in){
+void validate_cmd(Data_structs *data_structs, int cmd_in){
     switch (instruct_array[cmd_in].instructType) {
         case R_CMD:
             validate_r_cmd(data_structs, instruct_array[cmd_in]);
@@ -82,17 +81,19 @@ void validate_cmd(DATA_STRUCTS *data_structs, int cmd_in){
         case J_CMD:
             validate_j_cmd(data_structs, instruct_array[cmd_in]);
             break;
+        case NO_CMD:
+            break;
     }
 }
 
-void validate_r_cmd (DATA_STRUCTS *data_structs, INSTRUCTION ins){
+void validate_r_cmd (Data_structs *data_structs, Instruction ins){
     int count;
     count = get_all_numbers(data_structs, NULL, REG_FLAG, NONE);
     if (validate_r_cmd_param_num(data_structs, ins.opcode, count))
         is_extraneous(data_structs);
 }
 
-BOOL validate_r_cmd_param_num(DATA_STRUCTS *data_structs, unsigned int opcode, int count) {
+BOOL validate_r_cmd_param_num(Data_structs *data_structs, unsigned int opcode, int count) {
     if (count == 0) return FALSE;
     if (opcode == 0 && count != 3) {
         print_error_no_expected_op(data_structs, 3);
@@ -105,11 +106,12 @@ BOOL validate_r_cmd_param_num(DATA_STRUCTS *data_structs, unsigned int opcode, i
     return TRUE;
 }
 
-void validate_j_cmd (DATA_STRUCTS *data_structs, INSTRUCTION ins) {
+void validate_j_cmd (Data_structs *data_structs, Instruction ins) {
+    Line *l = NULL;
     long reg;
     char *label = calloc(MAXPARAM, sizeof(char));
     if (!label) { exit(EXIT_FAILURE); }
-    LINE *l = data_structs->l;
+    l = data_structs->line;
     skip_non_n_whitespace(&l->data);
     if (ins.cmd_num != STOP && *l->data == '\n') {
         free(label);
@@ -135,7 +137,7 @@ void validate_j_cmd (DATA_STRUCTS *data_structs, INSTRUCTION ins) {
     free(label);
 }
 
-void validate_i_cmd (DATA_STRUCTS *data_structs, INSTRUCTION ins){
+void validate_i_cmd (Data_structs *data_structs, Instruction ins){
     int count;
     CMD_FLAG flag = is_condi(ins.cmd_num) ? COND_FLAG : ARTH_LOAD_FLAG;
     count = get_all_numbers(data_structs, NULL, flag, NONE);
@@ -149,19 +151,19 @@ void validate_i_cmd (DATA_STRUCTS *data_structs, INSTRUCTION ins){
     }
 }
 
-void validate_init_cond_cmd (DATA_STRUCTS *data_structs, int count){
+void validate_init_cond_cmd (Data_structs *data_structs, int count){
     char *label = calloc(MAXPARAM, sizeof(char));
     if (!label) { exit(EXIT_FAILURE); }
     if (count != 2) {
         print_error_no_expected_op(data_structs, 2);
     }
     is_label_valid(data_structs, label, FALSE, NULL);
-    if (*label == '\0') print_error(MISSING_PARAM, data_structs->input_file_name, data_structs->l);
+    if (*label == '\0') print_error(MISSING_PARAM, data_structs->input_file_name, data_structs->line);
     is_extraneous(data_structs);
     free(label);
 }
 
-int insert_data_into_linked_list(DATA_STRUCTS *data_structs, PARAM_TYPE param_type){
+int insert_data_into_linked_list(Data_structs *data_structs, PARAM_TYPE param_type){
     int count, data_size = get_data_size(param_type);
     long *data = calloc(MAXLINE, sizeof(long));
     if (!data) { exit(EXIT_FAILURE); }
@@ -175,10 +177,10 @@ int insert_data_into_linked_list(DATA_STRUCTS *data_structs, PARAM_TYPE param_ty
     return count * data_size;
 }
 
-void process_ext(DATA_STRUCTS *data_structs, BOOL *is_symbol, char *param){
-    symbol_node *symbol = get_symbol_node_by_label(param, data_structs->symbol_head);
+void process_ext(Data_structs *data_structs, BOOL *is_symbol, char *param){
+    Symbol_node *symbol = get_symbol_node_by_label(param, data_structs->symbol_head);
     if (symbol != NULL && symbol->vis != EXT_VIS) {
-        print_error(LABEL_ALREADY_DEFINED, data_structs->input_file_name, data_structs->l);
+        print_error(LABEL_ALREADY_DEFINED, data_structs->input_file_name, data_structs->line);
     } else {
         *is_symbol = TRUE;
         strncpy(data_structs->cur_symbol->name, param, MAXPARAM);
@@ -187,7 +189,7 @@ void process_ext(DATA_STRUCTS *data_structs, BOOL *is_symbol, char *param){
     }
 }
 
-void validate_ent_ext(DATA_STRUCTS *data_structs, BOOL *is_symbol, PARAM_TYPE param_type){
+void validate_ent_ext(Data_structs *data_structs, BOOL *is_symbol, PARAM_TYPE param_type){
     char *param = calloc(MAXPARAM, sizeof(char));
     if (!param) { exit(EXIT_FAILURE); }
 
@@ -196,15 +198,15 @@ void validate_ent_ext(DATA_STRUCTS *data_structs, BOOL *is_symbol, PARAM_TYPE pa
             process_ext(data_structs, is_symbol, param);
         }
     } else {
-        print_error(NOT_A_LABEL, data_structs->input_file_name, data_structs->l);
+        print_error(NOT_A_LABEL, data_structs->input_file_name, data_structs->line);
     }
     free(param);
 }
 
-int get_str(DATA_STRUCTS *data_structs, long **data) {
+int get_str(Data_structs *data_structs, long **data) {
     int i = 0;
     char *last;
-    LINE *l = data_structs->l;
+    Line *l = data_structs->line;
 
     skip_non_n_whitespace(&l->data);
     if (*l->data == '\n') {
@@ -233,7 +235,7 @@ int get_str(DATA_STRUCTS *data_structs, long **data) {
     return i;
 }
 
-void update_data_node(DATA_STRUCTS *data_structs, const long *data, int count, PARAM_TYPE param_type){
+void update_data_node(Data_structs *data_structs, const long *data, int count, PARAM_TYPE param_type){
     int i = 0;
 
     switch (param_type) {
@@ -254,11 +256,14 @@ void update_data_node(DATA_STRUCTS *data_structs, const long *data, int count, P
             if (!data_structs->cur_data->data) { exit(EXIT_FAILURE); }
             for (; i<count; i++) { ((char *) data_structs->cur_data->data)[i] = (char) data[i]; }
             break;
+        case CMD: case LABEL: case ENT: case EXT: case NONE:
+        default:
+            break;
     }
 
     data_structs->cur_data->param_type = param_type;
-    data_structs->cur_data->symbol_value = data_structs->l->DC;
-    strncpy(data_structs->cur_data->original_ins, data_structs->l->data_head, data_structs->l->len-1); /* this line is for debugging */
+    data_structs->cur_data->symbol_value = data_structs->line->DC;
+    strncpy(data_structs->cur_data->original_ins, data_structs->line->data_head, data_structs->line->len - 1); /* this line is for debugging */
     data_structs->cur_data->data_count = count;
     data_structs->cur_data->next = create_data_node(); /*create_data_node is allocation safe */
 
@@ -271,10 +276,10 @@ BOOL is_db_instruct(PARAM_TYPE type){
                    type == ASCIZ || type == DW);
 }
 
-BOOL is_extraneous(DATA_STRUCTS *data_structs) {
-    skip_non_n_whitespace(&data_structs->l->data);
-    if (*data_structs->l->data != '\n' && *data_structs->l->data != '\0' ) {
-        print_error(EXTRANEOUS_TEXT, data_structs->input_file_name, data_structs->l);
+BOOL is_extraneous(Data_structs *data_structs) {
+    skip_non_n_whitespace(&data_structs->line->data);
+    if (*data_structs->line->data != '\n' && *data_structs->line->data != '\0' ) {
+        print_error(EXTRANEOUS_TEXT, data_structs->input_file_name, data_structs->line);
         return TRUE;
     }
     return FALSE;

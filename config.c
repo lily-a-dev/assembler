@@ -2,28 +2,9 @@
 #include "config.h"
 
 const char *saved_words[] = {"db", "dh", "dw", "entry", "extern", "asciz", NULL};
-const short OPCODE = 6;
-const short RS_T_D = 5;
-const short FUNCT = 5;
-const short UNUSED = 6;
-const short IMMED = 16;
-const short REG = 1;
-const short ADDRESS = 25;
-const char *INPUT_FILE_EXT = ".as";
-const char COMMENT_INDICATOR =  ';';
-const char LABEL_TERMINATOR =  ':';
-const char *ENTRY_STR = ".entry";
-const char *EXTERN_STR =  ".extern";
-const char *DH_STR = ".dh";
-const char *DW_STR = ".dw";
-const char *DB_STR =  ".db";
-const char *ASCIZ_STR = ".asciz";
-const int MAX_REG = 31;
-const int MIN_REG = 0;
-const BOOL IS_DEBUG = FALSE;
+const BOOL IS_DEBUG = TRUE;
 
-
-INSTRUCTION instruct_array[] = {
+Instruction instruct_array[] = {
         /* opcode and funct are saved as ints and not chars representing binary code (i.e. "00010")
          * as it's easier to make mistakes when using chars, and harder to find and corrects them. */
         {  R_CMD, ADD,"add", 0,    1 },

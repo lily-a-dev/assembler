@@ -30,7 +30,7 @@ typedef enum {
     LABEL_ALREADY_EXT,
     LABEL_CANNOT_BE_EXT,
     NO_ERROR,
-    END_OF_LINE,
+    END_OF_LINE
 } ERROR;
 
 #endif /*ASEMBLER_ERRORS_H*/

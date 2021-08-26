@@ -5,19 +5,11 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <limits.h>
 
-extern INSTRUCTION instruct_array[];
-extern const char *ENTRY_STR;
-extern const char *EXTERN_STR;
-extern const char *DH_STR;
-extern const char *DW_STR;
-extern const char *DB_STR;
-extern const char *ASCIZ_STR;
-extern const int MAX_REG;
-extern const int MIN_REG;
+extern Instruction instruct_array[];
 
-
-PARAM_TYPE get_param(DATA_STRUCTS *data_structs, char *param, BOOL is_first_pass) {
+PARAM_TYPE get_param(Data_structs *data_structs, char *param, BOOL is_first_pass) {
     PARAM_TYPE type;
     BOOL is_error = FALSE;
     type = is_db_ent(data_structs, param, &is_error);
@@ -25,27 +17,27 @@ PARAM_TYPE get_param(DATA_STRUCTS *data_structs, char *param, BOOL is_first_pass
         return type;
     if (is_first_pass && is_label_valid(data_structs, param, TRUE, &is_error)) {
         if (get_symbol_node_by_label(param, data_structs->symbol_head) != NULL) {
-            print_error(LABEL_ALREADY_DEFINED, data_structs->input_file_name, data_structs->l);
+            print_error(LABEL_ALREADY_DEFINED, data_structs->input_file_name, data_structs->line);
             return NONE;
         }
         return LABEL;
     }
-    if (!is_first_pass && (get_label(&data_structs->l->data, param, TRUE) > 0)) {
-        data_structs->l->data++;
+    if (!is_first_pass && (get_label(&data_structs->line->data, param, TRUE) > 0)) {
+        data_structs->line->data++;
         return LABEL;
     }
-    if (get_cmd_param(data_structs->l, param)) {
+    if (get_cmd_param(data_structs->line, param)) {
         return CMD;
     }
-    if (!is_error)print_error(UNDEFINED_CMD, data_structs->input_file_name, data_structs->l);
+    if (!is_error)print_error(UNDEFINED_CMD, data_structs->input_file_name, data_structs->line);
 
     return NONE;
 }
 
-int get_all_numbers(DATA_STRUCTS *data_structs, long **numbers, CMD_FLAG flag, PARAM_TYPE param_type) {
+int get_all_numbers(Data_structs *data_structs, long **numbers, CMD_FLAG flag, PARAM_TYPE param_type) {
     ERROR status = NO_ERROR;
     int count = 0;
-    char *l_start = data_structs->l->data, *l_end = &data_structs->l->data_head[data_structs->l->len-1];
+    char *l_start = data_structs->line->data, *l_end = &data_structs->line->data_head[data_structs->line->len - 1];
     BOOL is_reg;
 
     skip_non_n_whitespace(&l_start);
@@ -53,7 +45,7 @@ int get_all_numbers(DATA_STRUCTS *data_structs, long **numbers, CMD_FLAG flag, P
     if (!numbers){
         status = init_validation(&l_start, &l_end, flag);
         if (status != NO_ERROR) {
-            print_error(status, data_structs->input_file_name, data_structs->l);
+            print_error(status, data_structs->input_file_name, data_structs->line);
             return 0;
         }
     }
@@ -73,10 +65,10 @@ int get_all_numbers(DATA_STRUCTS *data_structs, long **numbers, CMD_FLAG flag, P
     }
 
     if (status != END_OF_LINE && status != NO_ERROR) {
-        print_error(status, data_structs->input_file_name, data_structs->l);
+        print_error(status, data_structs->input_file_name, data_structs->line);
         return 0;
     }
-    data_structs->l->data = l_start;
+    data_structs->line->data = l_start;
     return count;
 }
 
@@ -90,7 +82,7 @@ ERROR validate_number_syntax(char **l_start, BOOL is_activate_flag){
 }
 
 ERROR validate_range(long num, BOOL is_reg, PARAM_TYPE param_type) {
-    if (errno == ERANGE) return VALUE_OUT_OF_RANGE;
+    if (errno == ERANGE) { errno = 0; return VALUE_OUT_OF_RANGE; }
     if (is_reg && (num < MIN_REG || num > MAX_REG))
         return REG_OUT_OF_BOUNDS;
     if (param_type == DH && (num < SHRT_MIN || num > SHRT_MAX))
@@ -121,9 +113,9 @@ ERROR get_single_number(long **numbers, int *count, char **l_start, BOOL is_reg,
     return NO_ERROR;
 }
 
-PARAM_TYPE is_db_ent(DATA_STRUCTS *data_structs, char *param, BOOL *is_error) {
+PARAM_TYPE is_db_ent(Data_structs *data_structs, char *param, BOOL *is_error) {
     int i = 0;
-    LINE *l = data_structs->l;
+    Line *l = data_structs->line;
     skip_non_n_whitespace(&l->data);
     if (*l->data != '.') return NONE;
     if (isspace(*(l->data+1))) {
@@ -149,7 +141,7 @@ PARAM_TYPE get_db_ent_type(char *param) {
     return NONE;
 }
 
-BOOL get_cmd_param(LINE *l, char *param){
+BOOL get_cmd_param(Line *l, char *param){
     int i = 0;
     while (i < MAXPARAM && !isspace(*l->data) && *l->data != ',' && *l->data != '\0'){
         param[i++] = *(l->data++);
@@ -244,8 +236,8 @@ BOOL is_condi(CMD_NUM cmdNum){
 }
 
 
-BOOL get_register(DATA_STRUCTS *data_structs, long *reg) {
-    LINE *l = data_structs->l;
+BOOL get_register(Data_structs *data_structs, long *reg) {
+    Line *l = data_structs->line;
     char *endptr;
     *reg = strtol(l->data, &endptr, 10);
     if (l->data == endptr){

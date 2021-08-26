@@ -10,7 +10,6 @@ CMakeFiles/asembler.dir/encoder.c.obj: ../encoder.h
 CMakeFiles/asembler.dir/encoder.c.obj: ../error_handler.h
 CMakeFiles/asembler.dir/encoder.c.obj: ../errors.h
 CMakeFiles/asembler.dir/encoder.c.obj: ../label.h
-CMakeFiles/asembler.dir/encoder.c.obj: ../main.h
 CMakeFiles/asembler.dir/encoder.c.obj: ../memory_manager.h
 CMakeFiles/asembler.dir/encoder.c.obj: ../output_manager.h
 CMakeFiles/asembler.dir/encoder.c.obj: ../service.h
@@ -27,7 +26,6 @@ CMakeFiles/asembler.dir/input_validator.c.obj: ../errors.h
 CMakeFiles/asembler.dir/input_validator.c.obj: ../input_validator.c
 CMakeFiles/asembler.dir/input_validator.c.obj: ../input_validator.h
 CMakeFiles/asembler.dir/input_validator.c.obj: ../label.h
-CMakeFiles/asembler.dir/input_validator.c.obj: ../main.h
 CMakeFiles/asembler.dir/input_validator.c.obj: ../memory_manager.h
 CMakeFiles/asembler.dir/input_validator.c.obj: ../service.h
 
@@ -36,7 +34,6 @@ CMakeFiles/asembler.dir/label.c.obj: ../error_handler.h
 CMakeFiles/asembler.dir/label.c.obj: ../errors.h
 CMakeFiles/asembler.dir/label.c.obj: ../label.c
 CMakeFiles/asembler.dir/label.c.obj: ../label.h
-CMakeFiles/asembler.dir/label.c.obj: ../main.h
 CMakeFiles/asembler.dir/label.c.obj: ../service.h
 
 CMakeFiles/asembler.dir/main.c.obj: ../config.h

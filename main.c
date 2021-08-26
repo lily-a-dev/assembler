@@ -16,15 +16,9 @@
 #include "error_handler.h"
 #include "input_validator.h"
 
-extern INSTRUCTION instruct_array[];
-extern const short OPCODE;
-extern const short RS_T_D;
-extern const short FUNCT;
-extern const short IMMED;
-extern const char COMMENT_INDICATOR;
+extern Instruction instruct_array[];
 extern const char binary_print_format[];
 extern const char *saved_words[];
-
 
 int main(int argc, char *argv[]) {
     if (argc < 2) return 0;
@@ -44,12 +38,14 @@ void process_file(char *file_name){
 }
 
 void get_input(FILE *fp, char *file_name) {
+    Data_structs *data_structs = NULL;
+    Line *l = NULL;
     char *param = calloc(MAXPARAM, sizeof(char));
     if (!param) { exit(EXIT_FAILURE); }
 
-    DATA_STRUCTS *data_structs = create_data_structures(file_name);
-    if (data_structs == NULL) { free(param); return; }
-    LINE *l = data_structs->l;
+    data_structs = create_data_structures(file_name);
+    if(!data_structs) return;
+    l = data_structs->line;
 
     /* First pass is a validation pass, inserts any data given by instructions,
     * (.dw, .ascciz, etc.), build a symbol table. */
@@ -72,8 +68,8 @@ void get_input(FILE *fp, char *file_name) {
     free(param);
 }
 
-void read_file(FILE *fp, DATA_STRUCTS *data_structs, char *param, BOOL is_first_pass){
-    LINE *l = data_structs->l;
+void read_file(FILE *fp, Data_structs *data_structs, char *param, BOOL is_first_pass){
+    Line *l = data_structs->line;
     while ((l->len = getline(l->data_head, MAXLINE, fp)) > 0) {
         (l->line_num)++;
         l->data = l->data_head;
@@ -91,21 +87,21 @@ void read_file(FILE *fp, DATA_STRUCTS *data_structs, char *param, BOOL is_first_
     }
 }
 
-void init_encoding_pass(FILE *fp, DATA_STRUCTS *data_structs){
+void init_encoding_pass(FILE *fp, Data_structs *data_structs){
     int icf, dcf;
-    data_structs->l->line_num = 0;
-    icf = data_structs->l->IC;
-    dcf = data_structs->l->DC;
+    data_structs->line->line_num = 0;
+    icf = data_structs->line->IC;
+    dcf = data_structs->line->DC;
     update_symbols(data_structs, icf);
     update_data_img(data_structs, icf);
     print_ob_file_header(data_structs, icf, dcf);
     fseek(fp, 0, SEEK_SET);
-    data_structs->l->is_error = FALSE;
-    data_structs->l->IC = 100;
+    data_structs->line->is_error = FALSE;
+    data_structs->line->IC = 100;
 }
 
-void update_symbols (DATA_STRUCTS *dataStructs, int icf) {
-    struct symbol_node *symbol = dataStructs->symbol_head;
+void update_symbols (Data_structs *dataStructs, int icf) {
+    Symbol_node *symbol = dataStructs->symbol_head;
     while (symbol != NULL){
         if (symbol->attr == DATA)
             symbol->value += icf;
@@ -113,8 +109,8 @@ void update_symbols (DATA_STRUCTS *dataStructs, int icf) {
     }
 }
 
-void update_data_img (DATA_STRUCTS *dataStructs, int icf){
-    struct data_node *data = dataStructs->data_head;
+void update_data_img (Data_structs *dataStructs, int icf){
+    Data_node *data = dataStructs->data_head;
     while (data){
         data->symbol_value += icf;
         data = data->next;
