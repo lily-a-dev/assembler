@@ -196,6 +196,9 @@ void validate_ent_ext(Data_structs *data_structs, BOOL *is_symbol, PARAM_TYPE pa
     else if (is_label_valid(data_structs, param, FALSE, NULL)){
         if (param_type == EXT) {
             process_ext(data_structs, is_symbol, param);
+        } else {
+            data_structs->cur_symbol->name[0] = '\0';
+            *is_symbol = FALSE;
         }
     } else {
         print_error(NOT_A_LABEL, data_structs->input_file_name, data_structs->line);
